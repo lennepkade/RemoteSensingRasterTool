@@ -1,0 +1,140 @@
+{
+    "values": {
+        "inputs": {
+            "raster": {
+                "values": {
+                    "pos": {
+                        "values": {
+                            "y": 102.0, 
+                            "x": 152.0
+                        }, 
+                        "class": "point"
+                    }, 
+                    "param": {
+                        "values": {
+                            "isAdvanced": false, 
+                            "name": "raster", 
+                            "showSublayersDialog": true, 
+                            "default": null, 
+                            "value": null, 
+                            "exported": null, 
+                            "hidden": false, 
+                            "optional": false, 
+                            "description": "raster"
+                        }, 
+                        "class": "processing.core.parameters.ParameterRaster"
+                    }
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.ModelerParameter"
+            }
+        }, 
+        "helpContent": {}, 
+        "group": "Classification", 
+        "name": "Assign unwanted to NODATA", 
+        "algs": {
+            "GDALOGRRASTERCALCULATOR_1": {
+                "values": {
+                    "name": "GDALOGRRASTERCALCULATOR_1", 
+                    "paramsFolded": true, 
+                    "outputs": {}, 
+                    "pos": {
+                        "values": {
+                            "y": 233.0, 
+                            "x": 151.0
+                        }, 
+                        "class": "point"
+                    }, 
+                    "outputsFolded": true, 
+                    "dependencies": [], 
+                    "params": {
+                        "INPUT_F": null, 
+                        "BAND_F": "1", 
+                        "INPUT_D": null, 
+                        "INPUT_E": null, 
+                        "BAND_B": "1", 
+                        "BAND_C": "1", 
+                        "BAND_A": "1", 
+                        "EXTRA": null, 
+                        "RTYPE": 0, 
+                        "BAND_D": "1", 
+                        "NO_DATA": null, 
+                        "BAND_E": "1", 
+                        "FORMULA": "numpy.where(numpy.logical_or(A==6,numpy.logical_or(A==7,numpy.logical_or(A==8,A==9))),0,A)", 
+                        "INPUT_A": {
+                            "values": {
+                                "name": "raster"
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ValueFromInput"
+                        }, 
+                        "INPUT_B": null, 
+                        "INPUT_C": null
+                    }, 
+                    "active": true, 
+                    "consoleName": "gdalogr:rastercalculator", 
+                    "description": "Raster calculator"
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.Algorithm"
+            }, 
+            "GDALOGRTRANSLATE_1": {
+                "values": {
+                    "name": "GDALOGRTRANSLATE_1", 
+                    "paramsFolded": true, 
+                    "outputs": {
+                        "OUTPUT": {
+                            "values": {
+                                "description": "image_withnodata", 
+                                "pos": {
+                                    "values": {
+                                        "y": 419.0, 
+                                        "x": 373.0
+                                    }, 
+                                    "class": "point"
+                                }
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ModelerOutput"
+                        }
+                    }, 
+                    "outputsFolded": true, 
+                    "pos": {
+                        "values": {
+                            "y": 374.0, 
+                            "x": 173.0
+                        }, 
+                        "class": "point"
+                    }, 
+                    "dependencies": [], 
+                    "params": {
+                        "ZLEVEL": 6.0, 
+                        "BIGTIFF": 1, 
+                        "PROJWIN": null, 
+                        "SDS": false, 
+                        "OUTSIZE": 100.0, 
+                        "OUTSIZE_PERC": true, 
+                        "RTYPE": 0, 
+                        "COMPRESS": 4, 
+                        "NO_DATA": "0", 
+                        "SRS": "", 
+                        "TILED": false, 
+                        "JPEGCOMPRESSION": 75.0, 
+                        "INPUT": {
+                            "values": {
+                                "alg": "GDALOGRRASTERCALCULATOR_1", 
+                                "output": "OUTPUT"
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ValueFromOutput"
+                        }, 
+                        "TFW": false, 
+                        "PREDICTOR": 1.0, 
+                        "EXPAND": 0, 
+                        "EXTRA": null
+                    }, 
+                    "active": true, 
+                    "consoleName": "gdalogr:translate", 
+                    "description": "Translate (convert format)"
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.Algorithm"
+            }
+        }
+    }, 
+    "class": "processing.modeler.ModelerAlgorithm.ModelerAlgorithm"
+}

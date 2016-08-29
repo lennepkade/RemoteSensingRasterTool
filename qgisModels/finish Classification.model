@@ -1,0 +1,111 @@
+{
+    "values": {
+        "inputs": {
+            "ras": {
+                "values": {
+                    "pos": {
+                        "values": {
+                            "y": 31.800000000000004, 
+                            "x": 318.79999999999995
+                        }, 
+                        "class": "point"
+                    }, 
+                    "param": {
+                        "values": {
+                            "isAdvanced": false, 
+                            "name": "ras", 
+                            "showSublayersDialog": true, 
+                            "default": null, 
+                            "value": null, 
+                            "exported": null, 
+                            "hidden": false, 
+                            "optional": false, 
+                            "description": "ras"
+                        }, 
+                        "class": "processing.core.parameters.ParameterRaster"
+                    }
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.ModelerParameter"
+            }
+        }, 
+        "helpContent": {}, 
+        "group": "Classification", 
+        "name": "Finish Classification (Sieve 10-4 + NODATA)", 
+        "algs": {
+            "GDALOGRSIEVE_1": {
+                "values": {
+                    "name": "GDALOGRSIEVE_1", 
+                    "paramsFolded": true, 
+                    "outputs": {}, 
+                    "pos": {
+                        "values": {
+                            "y": 157.0, 
+                            "x": 220.0
+                        }, 
+                        "class": "point"
+                    }, 
+                    "outputsFolded": true, 
+                    "dependencies": [], 
+                    "params": {
+                        "THRESHOLD": 10.0, 
+                        "INPUT": {
+                            "values": {
+                                "name": "ras"
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ValueFromInput"
+                        }, 
+                        "CONNECTIONS": 0
+                    }, 
+                    "active": true, 
+                    "consoleName": "gdalogr:sieve", 
+                    "description": "Sieve"
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.Algorithm"
+            }, 
+            "MODELERFINAL ASSIGN TO NODATA_1": {
+                "values": {
+                    "name": "MODELERFINAL ASSIGN TO NODATA_1", 
+                    "paramsFolded": true, 
+                    "outputs": {
+                        "outfile_ALGGRASSR.MAPCALCULATOR_1": {
+                            "values": {
+                                "description": "Last classif", 
+                                "pos": {
+                                    "values": {
+                                        "y": 359.0, 
+                                        "x": 374.0
+                                    }, 
+                                    "class": "point"
+                                }
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ModelerOutput"
+                        }
+                    }, 
+                    "outputsFolded": true, 
+                    "pos": {
+                        "values": {
+                            "y": 314.0, 
+                            "x": 174.0
+                        }, 
+                        "class": "point"
+                    }, 
+                    "dependencies": [], 
+                    "params": {
+                        "inraster": {
+                            "values": {
+                                "alg": "GDALOGRSIEVE_1", 
+                                "output": "OUTPUT"
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ValueFromOutput"
+                        }
+                    }, 
+                    "active": true, 
+                    "consoleName": "modeler:final assign to nodata", 
+                    "description": "Final Assign to NODATA"
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.Algorithm"
+            }
+        }
+    }, 
+    "class": "processing.modeler.ModelerAlgorithm.ModelerAlgorithm"
+}

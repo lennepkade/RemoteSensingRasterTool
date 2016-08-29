@@ -1,0 +1,240 @@
+{
+    "values": {
+        "inputs": {
+            "masquedupag": {
+                "values": {
+                    "pos": {
+                        "values": {
+                            "y": 385.0, 
+                            "x": 390.0
+                        }, 
+                        "class": "point"
+                    }, 
+                    "param": {
+                        "values": {
+                            "isAdvanced": false, 
+                            "name": "masquedupag", 
+                            "shapetype": [
+                                2
+                            ], 
+                            "default": null, 
+                            "value": null, 
+                            "exported": null, 
+                            "hidden": false, 
+                            "optional": false, 
+                            "description": "Masque du PAG"
+                        }, 
+                        "class": "processing.core.parameters.ParameterVector"
+                    }
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.ModelerParameter"
+            }, 
+            "agripagoam": {
+                "values": {
+                    "pos": {
+                        "values": {
+                            "y": 158.0, 
+                            "x": 342.0
+                        }, 
+                        "class": "point"
+                    }, 
+                    "param": {
+                        "values": {
+                            "isAdvanced": false, 
+                            "name": "agripagoam", 
+                            "showSublayersDialog": true, 
+                            "default": null, 
+                            "value": null, 
+                            "exported": null, 
+                            "hidden": false, 
+                            "optional": false, 
+                            "description": "Agripag+OAM"
+                        }, 
+                        "class": "processing.core.parameters.ParameterRaster"
+                    }
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.ModelerParameter"
+            }, 
+            "classification": {
+                "values": {
+                    "pos": {
+                        "values": {
+                            "y": 153.0, 
+                            "x": 103.0
+                        }, 
+                        "class": "point"
+                    }, 
+                    "param": {
+                        "values": {
+                            "isAdvanced": false, 
+                            "name": "classification", 
+                            "showSublayersDialog": true, 
+                            "default": null, 
+                            "value": null, 
+                            "exported": null, 
+                            "hidden": false, 
+                            "optional": false, 
+                            "description": "Classification"
+                        }, 
+                        "class": "processing.core.parameters.ParameterRaster"
+                    }
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.ModelerParameter"
+            }
+        }, 
+        "helpContent": {}, 
+        "group": "Classification", 
+        "name": "Mask from OAM/Agripag and cut to PAG", 
+        "algs": {
+            "GDALOGRCLIPRASTERBYMASKLAYER_1": {
+                "values": {
+                    "name": "GDALOGRCLIPRASTERBYMASKLAYER_1", 
+                    "paramsFolded": true, 
+                    "outputs": {}, 
+                    "pos": {
+                        "values": {
+                            "y": 471.0, 
+                            "x": 118.0
+                        }, 
+                        "class": "point"
+                    }, 
+                    "outputsFolded": true, 
+                    "dependencies": [], 
+                    "params": {
+                        "ZLEVEL": 6.0, 
+                        "CROP_TO_CUTLINE": false, 
+                        "RTYPE": 5, 
+                        "BIGTIFF": 0, 
+                        "ALPHA_BAND": false, 
+                        "EXTRA": null, 
+                        "MASK": {
+                            "values": {
+                                "name": "masquedupag"
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ValueFromInput"
+                        }, 
+                        "COMPRESS": 4, 
+                        "KEEP_RESOLUTION": false, 
+                        "TILED": false, 
+                        "JPEGCOMPRESSION": 75.0, 
+                        "INPUT": {
+                            "values": {
+                                "alg": "GRASSR.MAPCALCULATOR_1", 
+                                "output": "outfile"
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ValueFromOutput"
+                        }, 
+                        "TFW": false, 
+                        "NO_DATA": null, 
+                        "PREDICTOR": 1.0
+                    }, 
+                    "active": true, 
+                    "consoleName": "gdalogr:cliprasterbymasklayer", 
+                    "description": "Clip raster by mask layer"
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.Algorithm"
+            }, 
+            "GDALOGRTRANSLATE_1": {
+                "values": {
+                    "name": "GDALOGRTRANSLATE_1", 
+                    "paramsFolded": true, 
+                    "outputs": {
+                        "OUTPUT": {
+                            "values": {
+                                "description": "Final_Class", 
+                                "pos": {
+                                    "values": {
+                                        "y": 634.0, 
+                                        "x": 288.0
+                                    }, 
+                                    "class": "point"
+                                }
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ModelerOutput"
+                        }
+                    }, 
+                    "pos": {
+                        "values": {
+                            "y": 563.0, 
+                            "x": 92.0
+                        }, 
+                        "class": "point"
+                    }, 
+                    "outputsFolded": true, 
+                    "dependencies": [], 
+                    "params": {
+                        "ZLEVEL": 6.0, 
+                        "PROJWIN": null, 
+                        "RTYPE": 0, 
+                        "BIGTIFF": 0, 
+                        "OUTSIZE_PERC": true, 
+                        "SDS": false, 
+                        "COMPRESS": 4, 
+                        "OUTSIZE": 100.0, 
+                        "NO_DATA": null, 
+                        "SRS": "", 
+                        "TILED": false, 
+                        "JPEGCOMPRESSION": 75.0, 
+                        "INPUT": {
+                            "values": {
+                                "alg": "GDALOGRCLIPRASTERBYMASKLAYER_1", 
+                                "output": "OUTPUT"
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ValueFromOutput"
+                        }, 
+                        "TFW": false, 
+                        "PREDICTOR": 1.0, 
+                        "EXPAND": 0, 
+                        "EXTRA": null
+                    }, 
+                    "active": true, 
+                    "consoleName": "gdalogr:translate", 
+                    "description": "Translate (convert format)"
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.Algorithm"
+            }, 
+            "GRASSR.MAPCALCULATOR_1": {
+                "values": {
+                    "name": "GRASSR.MAPCALCULATOR_1", 
+                    "paramsFolded": true, 
+                    "outputs": {}, 
+                    "outputsFolded": true, 
+                    "pos": {
+                        "values": {
+                            "y": 275.0, 
+                            "x": 117.0
+                        }, 
+                        "class": "point"
+                    }, 
+                    "dependencies": [], 
+                    "params": {
+                        "fmap": null, 
+                        "emap": null, 
+                        "GRASS_REGION_CELLSIZE_PARAMETER": 0.0, 
+                        "dmap": null, 
+                        "cmap": null, 
+                        "bmap": {
+                            "values": {
+                                "name": "classification"
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ValueFromInput"
+                        }, 
+                        "amap": {
+                            "values": {
+                                "name": "agripagoam"
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ValueFromInput"
+                        }, 
+                        "formula": "if(isnull(A),if(B==0,null(),B),null())", 
+                        "GRASS_REGION_PARAMETER": null
+                    }, 
+                    "active": true, 
+                    "consoleName": "grass:r.mapcalculator", 
+                    "description": "r.mapcalculator - Calculate new raster map from a r.mapcalc expression."
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.Algorithm"
+            }
+        }
+    }, 
+    "class": "processing.modeler.ModelerAlgorithm.ModelerAlgorithm"
+}

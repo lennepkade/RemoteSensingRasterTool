@@ -1,0 +1,131 @@
+{
+    "values": {
+        "inputs": {
+            "inraster": {
+                "values": {
+                    "pos": {
+                        "values": {
+                            "y": 86.0, 
+                            "x": 42.0
+                        }, 
+                        "class": "point"
+                    }, 
+                    "param": {
+                        "values": {
+                            "isAdvanced": false, 
+                            "name": "inraster", 
+                            "showSublayersDialog": true, 
+                            "default": null, 
+                            "value": null, 
+                            "exported": null, 
+                            "hidden": false, 
+                            "optional": false, 
+                            "description": "inRaster"
+                        }, 
+                        "class": "processing.core.parameters.ParameterRaster"
+                    }
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.ModelerParameter"
+            }
+        }, 
+        "helpContent": {}, 
+        "group": "Classification", 
+        "name": "Final Assign to NODATA", 
+        "algs": {
+            "GDALOGRRASTERCALCULATOR_1": {
+                "values": {
+                    "name": "GDALOGRRASTERCALCULATOR_1", 
+                    "paramsFolded": true, 
+                    "outputs": {}, 
+                    "outputsFolded": true, 
+                    "pos": {
+                        "values": {
+                            "y": 138.0, 
+                            "x": 320.0
+                        }, 
+                        "class": "point"
+                    }, 
+                    "dependencies": [], 
+                    "params": {
+                        "INPUT_F": null, 
+                        "BAND_F": "1", 
+                        "INPUT_D": null, 
+                        "INPUT_E": null, 
+                        "BAND_B": "1", 
+                        "BAND_C": "1", 
+                        "BAND_A": "1", 
+                        "RTYPE": 2, 
+                        "EXTRA": null, 
+                        "INPUT_A": {
+                            "values": {
+                                "name": "inraster"
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ValueFromInput"
+                        }, 
+                        "BAND_D": "1", 
+                        "NO_DATA": null, 
+                        "BAND_E": "1", 
+                        "FORMULA": "numpy.where(numpy.logical_or(A==6,numpy.logical_or(A==7,numpy.logical_or(A==8,numpy.logical_or(A==10,numpy.logical_or(A==12,A==9))))),0,A)", 
+                        "INPUT_B": null, 
+                        "INPUT_C": null
+                    }, 
+                    "active": true, 
+                    "consoleName": "gdalogr:rastercalculator", 
+                    "description": "Raster calculator"
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.Algorithm"
+            }, 
+            "GRASSR.MAPCALCULATOR_1": {
+                "values": {
+                    "name": "GRASSR.MAPCALCULATOR_1", 
+                    "paramsFolded": true, 
+                    "outputs": {
+                        "outfile": {
+                            "values": {
+                                "description": "outRaster", 
+                                "pos": {
+                                    "values": {
+                                        "y": 404.0, 
+                                        "x": 435.0
+                                    }, 
+                                    "class": "point"
+                                }
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ModelerOutput"
+                        }
+                    }, 
+                    "outputsFolded": true, 
+                    "pos": {
+                        "values": {
+                            "y": 359.0, 
+                            "x": 235.0
+                        }, 
+                        "class": "point"
+                    }, 
+                    "dependencies": [], 
+                    "params": {
+                        "fmap": null, 
+                        "emap": null, 
+                        "GRASS_REGION_CELLSIZE_PARAMETER": 0.0, 
+                        "dmap": null, 
+                        "cmap": null, 
+                        "bmap": null, 
+                        "amap": {
+                            "values": {
+                                "name": "inraster"
+                            }, 
+                            "class": "processing.modeler.ModelerAlgorithm.ValueFromInput"
+                        }, 
+                        "formula": "if(A==0 ||| A==6 ||| A==7 ||| A==8 ||| A==9 ||| A==10 ||| A==12 ||| A==255,null(),A)", 
+                        "GRASS_REGION_PARAMETER": null
+                    }, 
+                    "active": true, 
+                    "consoleName": "grass:r.mapcalculator", 
+                    "description": "r.mapcalculator - Calculate new raster map from a r.mapcalc expression."
+                }, 
+                "class": "processing.modeler.ModelerAlgorithm.Algorithm"
+            }
+        }
+    }, 
+    "class": "processing.modeler.ModelerAlgorithm.ModelerAlgorithm"
+}
