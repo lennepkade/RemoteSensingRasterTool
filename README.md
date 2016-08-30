@@ -20,6 +20,8 @@ Some scripts I developped for remote sensing. In Python or R, for the French Gui
 
 If you want to make classification from Qgis, please use **[dzetsaka](github.com/lennepkade/dzetsaka)**
 
+You can [**download** the whole repository](https://github.com/lennepkade/ScriptsParcAmazonien/archive/master.zip)
+
 # How to use these scripts ?
 Once installed, you will find them in the Qgis Toolbox (Boite à outils in French).
 
