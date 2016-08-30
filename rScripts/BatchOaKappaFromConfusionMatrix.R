@@ -16,29 +16,20 @@
 # Parse all csv files from a folder, then create table with filename, OA, and Kappa
 
 require(sp)
-#require(raster)
-#require(maptools)
-#require(rgeos)
-#require(gtools)
 
 initwd <- '/media/Backups/Sauvegarde Nico/stats/RF/'
 outputCsv = '../RFstat-3tree.csv'
-#classifier <- strsplit(initwd,"\\/")
-#classifier <- classifier[[1]][length(classifier[1])]
 
 setwd(initwd)
 
+inCsv <- list.files(path='.',pattern='*.csv$') # get all csv
 
-inCsv <- list.files(path='.',pattern='*.csv$')
+if(file.exists(outputCsv)){file.remove(outputCsv)}
 
-if(file.exists(outputCsv)){
-  file.remove(outputCsv)
-}
-
+# Create empty table
 mydf <- data.frame('imageName'=character(),'OA'=numeric(),'Kappa'=numeric())
 
 for(i in inCsv){
-#readConfu <- readConfu[-c(6,7,8,9),-c(6,7,8,9)]
 readConfu <- read.csv2(i,sep=',',header=FALSE)
 
 confuMatrix <- data.matrix(readConfu)
@@ -64,8 +55,5 @@ imageName = strsplit(strsplit(i, "\\.")[[1]], "\\_")[[1]][1]
 result <- data.frame(imageName,OA,Kappa)
 mydf <- rbind(mydf, result)
 }
-
-if(file.exists(outputCsv)){
-file.remove(outputCsv)}
 
 write.csv2(mydf,sep=";",file=outputCsv,row.names=FALSE,dec=",")
