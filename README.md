@@ -21,15 +21,12 @@ Some scripts I developped for remote sensing. In Python or R, for the French Gui
 If you want to make classification from Qgis, please use [dzetsaka](github.com/lennepkade/dzetsaka)
 
 # How to use these scripts ?
+Once installed, you will find them in the Qgis Toolbox (Boite à outils in French).
 
-## Qgismodels
-qgisModels folder files are to put in : 
-C:\users\YourName\.qgis2\processing\models
+## processing folder
+Processing folder contains all scripts from Qgis Model and Python Script that can be used in the Qgis toolbox. They are to put in :
+C:\users\YourName\.qgis2\
 
-## QgisScripts
-qgisScripts folder files are to put in :
-C:\users\YourName\.qgis2\processing\scripts
-
-## Other
-Other scripts (R script) can be use standalone.
+## rScripts
+R script can be use standalone. You can easily make them available en Qgis by mentionning the variable with '##'
 
