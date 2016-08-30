@@ -1,8 +1,24 @@
+#  _____                                                      _            
+# |  __ \                                                    (_)           
+# | |__) |_ _ _ __ ___    __ _ _ __ ___   __ _ _______  _ __  _  ___ _ __  
+# |  ___/ _` | '__/ __|  / _` | '_ ` _ \ / _` |_  / _ \| '_ \| |/ _ \ '_ \ 
+# | |  | (_| | | | (__  | (_| | | | | | | (_| |/ / (_) | | | | |  __/ | | |
+# |_|  _\__,_|_| _\___|  \__,_|_| |_| |_|\__,_/___\___/|_| |_|_|\___|_| |_|
+#     | |       / ____|                                                    
+#   __| | ___  | |  __ _   _ _   _  __ _ _ __   ___                        
+#  / _` |/ _ \ | | |_ | | | | | | |/ _` | '_ \ / _ \                       
+# | (_| |  __/ | |__| | |_| | |_| | (_| | | | |  __/                       
+#  \__,_|\___|  \_____|\__,_|\__, |\__,_|_| |_|\___|                       
+#                             __/ |                              
+#                             \__/
+#
+# Script to compute indices from SPOT-5 images
+# Add _indiceName.tif at your original filename for each indice
+
 ##Raster=group
 ##raster=raster
-#Blue=number 1
 # FOR SPOT 5
-Blue=0
+
 Green=1
 Red= 2
 NIR= 3
@@ -20,7 +36,7 @@ from osgeo import gdal
 import os
 
 class computeIndices:
-    def __init__(self,inRaster,Blue,Green,Red,NIR,MIR):
+    def __init__(self,inRaster,Green,Red,NIR,MIR):
         '''
         Input raster, bands, and output folder
         Compute indices
@@ -49,10 +65,10 @@ class computeIndices:
                    
             
             #NDVI
-            #self.ndvi(temp,Red,NIR)
+            self.ndvi(temp,Red,NIR)
             
             #TNDVI
-            #self.tndvi(temp,Red,NIR)
+            self.tndvi(temp,Red,NIR)
             
             #ARVI
             #self.arvi(temp,Blue,Red,NIR)
@@ -63,10 +79,11 @@ class computeIndices:
             #EVI
             #self.evi(temp,Blue,Red,NIR)
             
-            #
-            #self.evi2(temp,Red,NIR)
+            #EVI2
+            self.evi2(temp,Red,NIR)
+            
             #NDWI
-            #self.ndwi(temp,Red,MIR)
+            self.ndwi(temp,Red,MIR)
 
         except:
             print('Problem with '+inRaster)
@@ -189,17 +206,7 @@ class rasterFunction:
         im = sp.empty((nl,nc),dtype=dt) 
         return data,im
     
-    '''
-    Old function that open all the bands
-    '''
-    #    
-    #    for i in range(d):
-    #        im[:,:,i]=data.GetRasterBand(i+1).ReadAsArray()
-    #    
-    #    GeoTransform = data.GetGeoTransform()
-    #    Projection = data.GetProjection()
-    #    data = None
-    
+
     
     def create_empty_tiff(self,outname,im,d,GeoTransform,Projection,gdal_dt=None):
         '''!@brief Write an empty image on the hard drive.
@@ -246,14 +253,5 @@ class rasterFunction:
         return dst_ds
 
 
-
-computeIndices(raster,Blue,Green,Red,NIR,MIR)
+computeIndices(raster,Green,Red,NIR,MIR)
 print('done')
-if __name__ == '__main__':
-    inRaster="/home/lennepkade/Bureau/datapag/02-Results/02-Data/pansharp_Spot7.tif"
-    Blue=1
-    Green=2
-    Red=3
-    NIR=4
-    MIR=4
-    computeIndices(inRaster,Blue,Green,Red,NIR,MIR)

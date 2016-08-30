@@ -11,7 +11,7 @@
 #  \__,_|\___|  \_____|\__,_|\__, |\__,_|_| |_|\___|                       
 #                             __/ |                              
 #                             \__/
-
+#
 # R Script to merge all csv in subfolders
 
 initwd <- 'C:/yourWorkingFolder/'
