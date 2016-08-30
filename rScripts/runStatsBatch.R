@@ -1,3 +1,22 @@
+#  _____                                                      _            
+# |  __ \                                                    (_)           
+# | |__) |_ _ _ __ ___    __ _ _ __ ___   __ _ _______  _ __  _  ___ _ __  
+# |  ___/ _` | '__/ __|  / _` | '_ ` _ \ / _` |_  / _ \| '_ \| |/ _ \ '_ \ 
+# | |  | (_| | | | (__  | (_| | | | | | | (_| |/ / (_) | | | | |  __/ | | |
+# |_|  _\__,_|_| _\___|  \__,_|_| |_| |_|\__,_/___\___/|_| |_|_|\___|_| |_|
+#     | |       / ____|                                                    
+#   __| | ___  | |  __ _   _ _   _  __ _ _ __   ___                        
+#  / _` |/ _ \ | | |_ | | | | | | |/ _` | '_ \ / _ \                       
+# | (_| |  __/ | |__| | |_| | |_| | (_| | | | |  __/                       
+#  \__,_|\___|  \_____|\__,_|\__, |\__,_|_| |_|\___|                       
+#                             __/ |                              
+#                             \__/
+
+# R Script to compute SPOT5 stats from ROI
+# This script parse subfolders, find tif and shp with same name, and extract mean Value on each band
+# Sample : find file in folder 680-345/yourfile.tif, the script will find yourfile.shp, and if you
+# had some indices, find yourfile_INDICE.tif and link them to yourfile.shp
+
 require(sp)
 require(raster)
 require(maptools)
