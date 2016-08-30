@@ -26,8 +26,8 @@ Once installed, you will find them in the Qgis Toolbox (Boite à outils in Frenc
 ## processing folder
 Processing folder contains all scripts from Qgis Model and Python Script that can be used in the Qgis toolbox. They are to put in :
 
-C:\users\YourName\.qgis2\
+`C:\users\YourName\.qgis2\`
 
 ## rScripts
-R script can be use standalone. You can easily make them available in Qgis by mentionning the variable with '##'
+R script can be use standalone. You can easily make them available in Qgis by mentionning the variable with `##`
 
