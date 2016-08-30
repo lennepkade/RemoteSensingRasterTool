@@ -18,15 +18,16 @@
 # Remote Sensing Scripts
 Some scripts I developped for remote sensing. In Python or R, for the French Guiana Amazonian Park.
 
-If you want to make classification from Qgis, please use [dzetsaka](github.com/lennepkade/dzetsaka)
+If you want to make classification from Qgis, please use **[dzetsaka](github.com/lennepkade/dzetsaka)**
 
 # How to use these scripts ?
 Once installed, you will find them in the Qgis Toolbox (Boite à outils in French).
 
 ## processing folder
 Processing folder contains all scripts from Qgis Model and Python Script that can be used in the Qgis toolbox. They are to put in :
+
 C:\users\YourName\.qgis2\
 
 ## rScripts
-R script can be use standalone. You can easily make them available en Qgis by mentionning the variable with '##'
+R script can be use standalone. You can easily make them available in Qgis by mentionning the variable with '##'
 
