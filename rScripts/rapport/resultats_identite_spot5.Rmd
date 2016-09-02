@@ -1,0 +1,490 @@
+---
+title: Analyse des végétations particulières du Parc amazonien de Guyane à partir
+  d'images SPOT5
+author: "Nicolas Karasiak"
+output:
+  word_document:
+    fig_caption: yes
+    fig_height: 5
+    fig_width: 8
+  pdf_document: default
+  html_document:
+    fig_caption: yes
+    fig_height: 4
+    theme: flatly
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+```{r init,echo=FALSE,warning=FALSE}
+#dev.off()
+library(data.table)
+library(ggplot2)
+
+
+#fichierSuivi <- ("/media/Backups/VegetationsParticulieres/SPOT5/stats/ROIvalues.csv") #onLinux
+fichierSuivi <- ("Y:/VegetationsParticulieres/SPOT5/stats/ROIvalues.csv")
+
+satChose <-"SPOT 5" # Choix du satellite. ("SPOT 5","SPOT 6"..)
+
+mydf <- read.csv2(fichierSuivi,header=TRUE,sep="\t")  # read csv file 
+# Remove unwanted columns
+mydf <- mydf[!mydf$classe>12,]
+nonNumericColumns=c('mntmin','mntmax','mntmean')
+
+bandsColor <- c("green", "green", "red", "red","#CC79A7","#CC79A7","pink", "pink","white","white","white")
+spectralsColor <- c("green", "red", "#CC79A7","pink")
+meanColor <- c("green", "red", "#CC79A7","pink")
+# Colors for Djogoun pété, palmier bâche, roche, et veg basse
+vegColor <- c("coral4","green2","deepskyblue","brown1","chartreuse4","darkgoldenrod1","cadetblue","green2","white","white")
+plotColour <- c("brown4","green4","khaki4","red","green2","coral")
+
+# Remove columns
+
+mydf <- mydf[, -which(names(mydf) %in% c(nonNumericColumns))]
+
+indicesColumns <- c('ndcimin','ndcimax','ndcimean','ndvimean','ndvimin','ndvimax','ndwimin','ndwimax','ndwimean','tndvimean','tndvimin','tndvimax','evi2mean','evi2min','evi2max')
+mydf <- mydf[, -which(names(mydf) %in% c(indicesColumns))]
+
+
+# rewrite good classification
+setDT(mydf)[classe==1,type:='Parinari']
+setDT(mydf)[classe==2,type:='Végétation basse']
+setDT(mydf)[classe==3,type:='Palmier bâche']
+setDT(mydf)[classe==4,type:='Savane-roche']
+setDT(mydf)[classe==6,type:='Nuage']
+setDT(mydf)[classe==7,type:='Ombre']
+setDT(mydf)[classe==8,type:='Frange']
+setDT(mydf)[classe==9,type:='Eau']
+setDT(mydf)[classe==10,type:='Forêt']
+setDT(mydf)[classe==11,type:='Palmier pinôt']
+setDT(mydf)[classe==12,type:='Forêt']
+mydf <- mydf[!mydf$type=='Nuage',]
+mydf <- mydf[!mydf$type=='Ombre',]
+mydf <- mydf[!mydf$type=='Frange',]
+mydf <- mydf[!mydf$type=='Eau',]
+
+# Remove if error / 0 value in band Green or Red
+mydf <- mydf[!(mydf$Vmean==0 & mydf$Rmin==0),]
+
+mydfc <- mydf
+#
+setDF(mydf)
+
+bandsColumns <- c('Vmin','Vmax','Rmin','Rmax','NIRmin','NIRmax','MIRmin','MIRmax')
+
+mydfc$imageName <- NULL
+mydfc$scene <- NULL
+mydfc$date <- NULL
+
+# Remove if 0 value
+
+mydfMean <- mydfc
+
+setDF(mydfMean)
+noMeanColumns <- c('Vmin','Vmax','Rmin','Rmax','NIRmin','NIRmax','MIRmin','MIRmax','classe')
+mydfMean <- mydfMean[, -which(names(mydfMean) %in% c(noMeanColumns))]
+
+colnames(mydfMean)[2]='Vert'
+colnames(mydfMean)[3]='Rouge'
+colnames(mydfMean)[4]='PIR'
+colnames(mydfMean)[5]='MIR'
+mydfc <- mydfMean
+
+```
+
+# Carte d'identité des végétations particulières
+
+Ce travail a pour objectif de dresser une carte d'identité des végétations particulières du Parc amazonien de Guyane.
+Selon le niveau de description des données terrain ou de la reconnaissance possible par photo-interprétation, il a été réalisé une classification soit par essence avec les parinaris (*Parinari campestris*), les palmiers bâche (*Mauritia flexuosa*) et les pinotières (*Euterpe oleracea*), soit par physionomie avec la végétation basse qui regroupe les cambrouses de bambous (*Guadua macrostachya* et *Lasiacis ligulata*) avec les héliconias (*Heliconiaceae*).
+
+Le présent travail s'est basé sur une précédente cartographie réalisée par Pauline Perbet (géomaticienne au Parc amazonien de Guyane) qui avait effectué un premier recensement des végétations basses et des savanes-roche en utilisant les outils que sont Envi et ArcGis.
+Cela m'a permis de me familiariser avec les données et aussi avec la reconnaissance en télédétection de ce type de végétation. Cette nouvelle cartographie s'est effectuée en utilisant uniquement des logiciels openSource comme Qgis, R ou Monteverdi et à partir de parcelles d'entrainement.
+
+Les données spectrales utilisées pour les statistisques ont été obtenues à partir de **`r length(unique(mydf$image))` images** `r satChose` traitées en TOA (Top Of the Atmosphere) obtenues à **`r length(unique(mydf$date))` dates différentes**.
+
+Les analyses reposent sur un total de **`r nrow(mydf)` parcelles d'entrainement**, dont **`r length(mydf$type[mydf$type=='Végétation basse'])` de végétation basse, `r length(mydf$type[mydf$type=='Savane-roche'])` de savane-roche, `r length(mydf$type[mydf$type=='Forêt'])` de forêt, `r length(mydf$type[mydf$type=='Parinari'])` de parinari, `r length(mydf$type[mydf$type=='Palmier bâche'])` de palmier bâche** et **`r length(mydf$type[mydf$type=='Palmier pinôt'])` de palmier pinôt**.
+
+## Analyse des images `r satChose`
+
+Après avoir identifié et recensé les végétations particulières sur l'ensemble du parc, il a été effectué des analyses zonales afin d'en extraire la réflectance moyenne de chaque parcelle d'entrainement pour chaque type de végétation. Afin d'optimiser le traitement et de pouvoir aisément le reproduire, un script R a été développé et génère un fichier CSV qui contient toutes les données spectrales des polygones pour chaque image. Le script parcourt toutes les images d'un dossier indiqué, les rattachent au fichier vectoriel du même nom et sauvegarde le tout dans un fichier CSV. Par la suite une fusion permet d'obtenir un fichier unique qui contient toutes les caractèristiques spectrales de l'ensemble des parcelles d'entraînement.
+
+### Amplitude de réflectance de la végétation particulière
+
+
+```{r boxsplot amplitude veg, echo=FALSE, fig.height=5, fig.width=8, warning=FALSE}
+
+mydf.m <- melt(mydfMean, id="type")
+
+barchart=ggplot(mydf.m,aes(type, y=value, fill=variable))
+  barchart+geom_boxplot(alpha=0.5)+
+  theme(axis.text.x = element_blank())+
+  scale_fill_manual(values=meanColor)+
+  labs(title = "Réflectance selon le type de végétation")+
+  labs(x='Végétation',y='réflectance (TOA)')+
+  facet_grid(. ~ type,scales = "free")+
+  theme(legend.title=element_blank()) #remove legend title
+
+
+```
+
+Ce premier graphique représente l'amplitude spectrale moyenne de chaque végétation pour chaque bande, sur l'ensemble du territoire et sur l'ensemble des dates d'acquisition (de 2007 à 2014). La végétation basse est celle qui a le plus de réflectance dans les verts, suivi par les palmiers pinôt et la forêt. La savane roche a une intensité plus faible dans les verts, mais plus forte dans la moyen infrarouge.
+
+Afin de comparer les classes entre elles, il a été représenté la dispersion des végétations pour chaque bande spectrale. Cela permet de visualiser l'indépendance des végétations identifiées et ainsi de voir si elles sont spectralements différenciables.
+
+```{r,echo=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(mydfMean,aes(x=Rouge,y=Vert,fill=type))+
+  geom_point(aes(colour=type), size=3,alpha=0.5)+
+  labs(title = "Dispersion des végétations entre le vert et le rouge")+
+  scale_color_manual(values = vegColor)+
+  scale_x_continuous(limits = c(30,120))
+
+
+```
+```{r, echo=FALSE, fig.height=4, fig.width=6, message=FALSE, warning=FALSE}
+
+ggplot(mydfMean,aes(x=Rouge,y=Vert,fill=type))+
+  geom_point(aes(colour=type), size=3,alpha=0.5)+
+  labs(title = "Dispersion des végétations entre le vert et le rouge")+
+  scale_color_manual(values = vegColor)+
+  scale_x_continuous(limits = c(30,120))+
+  facet_wrap(~ type)+
+  theme(legend.position="none",title=element_blank())
+
+```
+
+On observe ainsi que la végétation basse et la savane-roche sont spectralements différentes avec des valeurs de vert au minimum dans les 300 d'intensité pour la première et au maximum de 300 pour la seconde.
+Il y a certaines confusions avec les `r length(mydf$type[mydf$type=='Palmier bâche'])` échantillons de palmier bâche qui se confondent ici légèrement avec les parinaris et la forêt même si on peut observer une certaine différence spectrale.
+
+```{r,echo=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(mydfMean,aes(x=MIR,y=PIR,fill=type))+
+  geom_point(aes(colour=type), size=3,alpha=0.5)+
+  labs(title = "Dispersion des végétations entre le proche et moyen infrarouge")+
+  scale_color_manual(values = vegColor)+
+  scale_y_continuous(limits = c(50, 120))
+
+```
+```{r,echo=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(mydfMean,aes(x=MIR,y=PIR,fill=type))+
+  geom_point(aes(colour=type), size=3,alpha=0.5)+
+  labs(title = "Dispersion des végétations entre le proche et moyen infrarouge")+
+  scale_color_manual(values = vegColor)+
+  scale_y_continuous(limits = c(50, 120))+
+  facet_wrap(~ type)+
+  theme(legend.position="none",title=element_blank())
+```
+
+A la différence du vert et du rouge, les canaux proche et moyen infrarouge montre une plus grande homogénéité spectrale ne permettant pas de mieux différencier les végétations particulières du parc.
+
+```{r,echo=FALSE, echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(mydfMean,aes(x=Vert,y=PIR,fill=type))+
+  geom_point(aes(colour=type), size=3,alpha=0.5)+
+  labs(title = "Dispersion des végétations entre le vert et le proche infrarouge")+
+  scale_color_manual(values = vegColor)+
+  scale_y_continuous(limits = c(50,130))
+
+
+ggplot(mydfMean,aes(x=Vert,y=PIR,fill=type))+
+  geom_point(aes(colour=type), size=3,alpha=0.5)+
+  labs(title = "Dispersion des végétations entre le vert et le proche infrarouge")+
+  scale_color_manual(values = vegColor)+
+  scale_y_continuous(limits = c(50,130))+
+  facet_wrap(~ type)+
+  theme(legend.position="none",title=element_blank())
+
+```
+
+L'analyse du vert et du proche infrarouge montre que la Savane-roche et la végétation basse se différencient relativement aisément des autres classes, contrairement aux parinaris, palmier bâche et palmier pinôt. 
+
+La moyenne spectrale des végétations sur l'ensemble des dates et des localisations ne permet donc pas de séparer spectralement de manière optiamle  les parinaris, les palmiers bâches ou pinots. 
+
+La différence par zone géographique ou par date devrait permettre de mieux séparer les végétations.
+
+## Évolution dans le temps des signatures spectrales
+Les spécificités de certaines végétations les rendent plus intenses en saison sèche, ce qui est le cas par exemple du parinari. Il semblerait qu'il y ait plusieurs facteurs expliquant ce phénomène comme les sols hydromorphes (de type djogoun pété) qui en en fin de saison sèche favoriserait la photosynthèse et la croissance de nouvelles pousses pour les parinaris.
+
+La zone étudiée pour comparer l'évolution des végétations particulières est la scène SPOT5 *690-343* située au centre du Parc amazonien de Guyane. Trois dates sont disponibles, décembre 2011, juin et septembre 2012.
+
+```{r Evolution dans le temps, echo=FALSE, fig.height=6, fig.width=9, warning=FALSE}
+
+library(scales)
+
+# Calculate mean for each date (by band/veg type)
+mydf.m$date <- mydf$image
+
+#mydf$image
+mydfEvo <- mydf.m
+mydfEvo$Scene <- substr(mydfEvo$date,10,17)
+mydfEvo$date <- as.Date(mydfEvo$date,"%Y%m%d")
+
+
+# mean
+mydfEvo <- na.omit(mydfEvo)
+mydfEvo690343 <- mydfEvo[mydfEvo$Scene=='690-343',]
+mydfEvo690343 <- mydfEvo690343[mydfEvo690343$date!='2009-09-17',]
+mydf.ag <- aggregate(x = mydfEvo690343,by = list(mydfEvo690343$variable,mydfEvo690343$date,mydfEvo690343$type), FUN = mean,na.rm=TRUE)
+
+evoVeg <- ggplot(mydf.ag,aes(x=Group.2, y=value,group=Group.1,colour=Group.1,log="y"))
+evoVeg+geom_point(size=2)+
+  geom_line(size=1)+
+  scale_color_manual(values=spectralsColor)+
+  labs(title = "Évolution de la réflectance selon le type de végétation (scène 690-343)")+
+  labs(x='Date d\'acquisition',y='réflectance (TOA)')+
+  facet_grid(~ Group.3,scales = "free_y")+
+  scale_x_date(breaks = unique(mydf.ag$date), labels=date_format("%b.%y"))+
+  theme(axis.text.x = element_text(angle=90,  hjust = 1, vjust=0, size = 7))+
+  theme(legend.title=element_blank()) #remove legend title
+
+```
+
+Il s'avère que plus on entre dans la saison sèche (septembre 2012), plus l'intensité du signal sera fort dans le vert pour l'ensemble des végétations à l'exception de la végétation basse. A la différence de l'ensemble des végétations, le palmier pinôt est la seule essence où le moyen infrarouge augmente à cette période.
+Le phénomène de verdissement de la canopée a été étudié par Emil Cherrington (Cherrington et al.  BRDF-corrected vegetation indices confirm seasonal pattern in greening of French Guiana's forests, 2016).
+
+
+
+### Le parinari
+
+```{r veg basse selon amplitude, echo=FALSE, fig.height=3, warning=TRUE}
+evoForet <- mydf.ag[mydf.ag$Group.3=='Forêt',]
+evoParinari <- mydf.ag[mydf.ag$Group.3=='Parinari',]
+
+chart <- ggplot(evoParinari,aes(x=Group.2, y=value,group=Group.1,colour=Group.1,log="y"))
+chart+geom_point(size=3)+
+  geom_line(size=1)+
+  scale_color_manual(values=spectralsColor)+
+  labs(title = "Évolution de la réflectance du Parinari")+
+  labs(x="Date d'acquisition",y='réflectance (TOA)')+
+  scale_x_date(breaks = unique(mydf.ag$date), labels=date_format("%b.%Y"))+
+  theme(legend.title=element_blank()) #remove legend title
+
+```
+
+Les parinaris sont des arbres présents sur un sol de type djogoun pété, c'est-à-dire  de "*micro-dépressions d'une mètre de diamètre sur 30 à 50 cm de profondeur, parfois remplis d'eau en saison des pluies*" selon l'ONF. La canopée (parinari et tachigalie) y est très ouverte et elle se repère donc en photo-interprétation. Cependant, on peut se demander quelle est l'influence de la saison dans la signature spectrale de ce type de végétation. On observe que leur signature spectrale dans la bande verte est très élevée en fin d'année (`r round(max(evoParinari[evoParinari$Group.1=='Vert',]$value, na.rm = TRUE))` en moyenne), pour un minimum de `r round(min(evoParinari[evoParinari$Group.1=='Vert',]$value, na.rm = TRUE))` en fin de saison des pluies (juin). Dans le moyen infrarouge le maximum est de `r round(min(evoParinari[evoParinari$Group.1=='MIR',]$value, na.rm = TRUE))` pour juin contre `r round(max(evoParinari[evoParinari$Group.1=='MIR',]$value, na.rm = TRUE))` vers la fin de l'année.
+
+Par rapport à la forêt, le parinari en décembre a une réflectance dans les verts plus faible de `r abs(round(max(evoParinari[evoParinari$Group.1=='Vert',]$value, na.rm = TRUE)) - round(max(evoForet[evoForet$Group.1=='Vert',]$value, na.rm = TRUE)))`, en fin de saison des pluies plus faible de  `r abs(round(min(evoParinari[evoParinari$Group.1=='Vert',]$value, na.rm = TRUE)) - round(min(evoForet[evoForet$Group.1=='Vert',]$value, na.rm = TRUE)))`.
+
+### La végétation basse
+
+```{r echo=FALSE, fig.height=3, warning=TRUE}
+# Graph by date for low veg
+evoVegB <- mydf.ag[mydf.ag$Group.3=='Végétation basse',]
+
+chart <- ggplot(evoVegB,aes(x=Group.2, y=value,group=Group.1,colour=Group.1,log="y"))
+chart+geom_point(size=3)+
+  geom_line(size=1)+
+  scale_color_manual(values=spectralsColor)+
+  labs(title = "Évolution de la réflectance de la végétation basse")+
+  labs(x='Date d\'acquisition',y='réflectance (TOA)')+
+  scale_x_date(breaks = unique(mydf.ag$date), labels=date_format("%b.%Y"))+
+  #scale_y_continuous(breaks=seq(-4,6, by=1))+
+  #scale_x_date(breaks = evoVegB$date, labels = format(evoVegB$date, format = "%m/%y"))+
+  theme(legend.title=element_blank()) #remove legend title
+
+```
+
+La végétation basse a une réflectance assez constante de juin à décembre dans le rouge et le proche infrarouge, mais une réflectance en baisse dans le vert et le moyen-infrarouge vers septembre, vers le début de la saison sèche.
+
+
+### Le palmier bâche
+
+```{r,echo=FALSE, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3}
+
+evoBache <- mydf.ag[mydf.ag$Group.3=='Palmier bâche',]
+
+chart <- ggplot(evoBache,aes(x=Group.2, y=value,group=Group.1,colour=Group.1,log="y"))
+chart+geom_point(size=3)+
+  geom_line(size=1)+
+  scale_color_manual(values=spectralsColor)+
+  labs(title = "Évolution de la réflectance du Palmier Bâche")+
+  labs(x="Date d'acquisition",y='réflectance (TOA)')+
+  scale_x_date(breaks = unique(mydf.ag$date), labels=date_format("%b.%Y"))+
+  #scale_y_continuous(breaks=seq(-4,6, by=1))+
+  #scale_x_date(breaks = evoVegB$date, labels = format(evoVegB$date, format = "%m/%y"))+
+  theme(legend.title=element_blank()) #remove legend title
+```
+
+Le palmier bâche est assez constant dans le rouge et les infrarouge à la différence du vert qui fluctue selon la saison avec un minimum de `r round(min(evoBache[evoBache$Group.1=='Vert',]$value, na.rm = TRUE))` en moyenne en juin, pour un maximum de `r round(max(evoBache[evoBache$Group.1=='Vert',]$value, na.rm = TRUE))` en moyenne en décembre. Dans le moyen infrarouge le maximum est de `r round(min(evoBache[evoBache$Group.1=='MIR',]$value, na.rm = TRUE))` pour juin contre `r round(max(evoBache[evoBache$Group.1=='MIR',]$value, na.rm = TRUE))` vers la fin de l'année.
+
+Par rapport à la forêt, le palmier bâche en décembre a une réflectance dans les verts plus faible de `r abs(round(max(evoBache[evoBache$Group.1=='Vert',]$value, na.rm = TRUE)) - round(max(evoForet[evoForet$Group.1=='Vert',]$value, na.rm = TRUE)))`, en fin de saison des pluies plus faible `r abs(round(min(evoBache[evoBache$Group.1=='Vert',]$value, na.rm = TRUE)) - round(min(evoForet[evoForet$Group.1=='Vert',]$value, na.rm = TRUE)))` donc très proche. La différence est donc beaucoup plus marquée en début de saison des pluies.
+
+### La savane-roche
+
+```{r,echo=FALSE, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3}
+
+evoSavaneR <- mydf.ag[mydf.ag$Group.3=='Savane-roche',]
+
+chart <- ggplot(evoSavaneR,aes(x=Group.2, y=value,group=Group.1,colour=Group.1,log="y"))
+chart+geom_point(size=3)+
+  geom_line(size=1)+
+  scale_color_manual(values=spectralsColor)+
+  labs(title = "Évolution de la réflectance de la Savane-roche")+
+  labs(x=satChose,y='réflectance (TOA)')+
+  scale_x_date(breaks = unique(mydf.ag$date), labels=date_format("%b.%Y"))+
+
+  theme(legend.title=element_blank()) #remove legend title
+```
+
+Le savane-roche est cartographiée en ne sélectionnant que les dalles rocheuses, leur séparabilité spectrale est donc aisée. C'est la seule classe à cartographier qui a une plus forte réflectance de la moyen infrarouge que dans le vert (`r round(max(evoSavaneR[evoSavaneR$Group.1=='MIR',]$value, na.rm = TRUE))-round(min(evoSavaneR[evoSavaneR$Group.1=='Vert',]$value, na.rm = TRUE))` de différence en juin 2012).
+
+### Le palmier pinôt
+
+```{r,echo=FALSE, echo=FALSE, message=FALSE, warning=FALSE, fig.height=3}
+
+evoPinot <- mydf.ag[mydf.ag$Group.3=='Palmier pinôt',]
+
+chart <- ggplot(evoPinot,aes(x=Group.2, y=value,group=Group.1,colour=Group.1,log="y"))
+chart+geom_point(size=3)+
+  geom_line(size=1)+
+  scale_color_manual(values=spectralsColor)+
+  labs(title = "Évolution de la réflectance du Palmier Pinôt")+
+  labs(x="Date d'acquisition",y='réflectance (TOA)')+
+  scale_x_date(breaks = unique(mydf.ag$date), labels=date_format("%b.%Y"))+
+  theme(legend.title=element_blank()) #remove legend title
+
+```
+
+Le palmier pinôt est peu présent sur cette zone, il n'y a donc que deux dates pour suivre son évolution. On note toutefois un verdissement en saison sèche (+`r round(max(evoBache[evoBache$Group.1=='Vert',]$value, na.rm = TRUE))-round(min(evoBache[evoBache$Group.1=='Vert',]$value, na.rm = TRUE))` d'intensité) ainsi qu'une augmentation des infrarouge par rapport à juin (+`r round(max(evoBache[evoBache$Group.1=='MIR',]$value, na.rm = TRUE))-round(min(evoBache[evoBache$Group.1=='MIR',]$value, na.rm = TRUE))` d'intensité en MIR et +`r round(max(evoBache[evoBache$Group.1=='PIR',]$value, na.rm = TRUE))-round(min(evoBache[evoBache$Group.1=='PIR',]$value, na.rm = TRUE))` en PIR).  en moyenne en juin, pour un maximum de `r round(max(evoBache[evoBache$Group.1=='Vert',]$value, na.rm = TRUE))` en moyenne en décembre. Dans le moyen infrarouge le maximum est de `r round(min(evoBache[evoBache$Group.1=='MIR',]$value, na.rm = TRUE))` pour juin contre `r round(max(evoBache[evoBache$Group.1=='MIR',]$value, na.rm = TRUE))` vers la fin de l'année.
+
+
+L'analyse spectrale des images montre que les canaux vert et moyen infrarouge sont primordiaux pour effectuer une bonne classification des types de végétations. Pour le palmier pinôt on observe une augmentation du moyen infrarouge en juin et septembre, pour la savane roche une différence très forte entre le moyen infrarouge et le vert en juin. Selon les végétations il convient donc de privilégier certaines dates, ou de créer des images multitemporelles afin de les cartographier au mieux.
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+mydf2012 = na.omit(mydfc)
+ggplot(mydf2012,aes(x=PIR,y=Vert,fill=type))+
+  geom_point(aes(colour=type), size=3,alpha=0.5)+
+  labs(title = "Dispersion entre le vert et le proche infrarouge (2012/09/12)")+
+  scale_color_manual(values = vegColor)
+  #scale_x_continuous(limits = c(30,120))+
+  #facet_wrap(~ type)
+  #theme(legend.position="none",title=element_blank())
+
+```
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+ggplot(mydf2012,aes(x=PIR,y=Vert,fill=type))+
+  geom_point(aes(colour=type), size=3,alpha=0.5)+
+  labs(title = "Dispersion entre le vert et le rouge (12/09/2012)")+
+  scale_color_manual(values = vegColor)+
+  facet_wrap(~ type)+
+  theme(legend.position="none",title=element_blank())
+
+```
+
+En ne gardant que la moyenne de la réflectance des végétations sur une seule date, les végétations deviennent spectralement plus distinctes. Il convient donc de ne pas mélanger les dates entre elles car elles diminuent séparabilité des essences.
+
+Cependant ces végétations se trouvent sur plusieurs zones géographiques distinctes. Il convient de regarder l'influence de leur localisation sur leur réflectance.
+
+## L'effet biogéographique des végétations
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Graph by scene
+mydfc$scene <- mydf$scene
+mydfc$date <- mydf$date
+mydfc <- na.omit(mydfc[mydfc$date=='20120912',])
+mydfc$date <- NULL
+```
+
+Une des spécificités de la zone d'étude est son étendue et son nombre important de scènes SPOT5 afin de couvrir le territoire. Il existe en effet des disparités qu'on appelle l'effet biogéographique, c'est-à-dire que le même type de végétation n'aura pas la même réflectance spectrale selon sa localisation.
+
+Afin de comparer les végétations, la date du 12/09/2012 a été selectionnée car elle avait le plus grand nombre de scènes disponibles (`r length(unique(mydfc$scene))`).
+
+### Le parinari
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Graph by scene
+# Graph by scene for Veg basse
+mydfc$scene <- mydf$scene
+mydf.sc <-  mydfc
+mydf.sc$type <- NULL
+mydf.sc$date <- NULL
+
+mydf.sc <- mydf.sc[complete.cases(mydf.sc),]
+
+mydf.sc <- melt(mydfc, id=c("type","scene"))
+mydf.sc <- mydf.sc[mydf.sc$variable=='Vert',]
+
+chart=ggplot(mydf.sc, aes(x=scene, y=value, fill='green'))+geom_boxplot(alpha=0.5)
+chart+
+  theme(axis.text.x = element_blank())+
+  scale_fill_manual(values=spectralsColor)+
+  labs(title = "Réflectance du parinari selon la localisation")+
+  labs(x='Scène',y='réflectance (TOA)')+
+  facet_grid(type ~ scene,scales = "free")+
+  theme(legend.title=element_blank(), axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) #remove legend title
+
+```
+
+Pour les parinaris, la moyenne dans le vert est de `r round(mean(mydf.sc[mydf.sc$variable=='Vert' & mydf.sc$scene=='690-343',]$value, na.rm = TRUE))` pour la scène 690-343 contre `r round(mean(mydf.sc[mydf.sc$variable=='Vert' & mydf.sc$scene=='690-344',]$value, na.rm = TRUE))` pour la scène 690-344.
+Cependant le faible nombre de données aux mêmes dates peut fausser ces résultats. Seulement `r nrow(mydf.sc[mydf.sc$scene=='690-343',])` parcelles sont disponibles pour la zone 690-343 et `r nrow(mydf.sc[mydf.sc$scene=='690-344',])` pour la zone 690-344.
+
+### La végétation basse
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Graph by scene for Veg basse
+mydf.sc <-  mydfc[mydfc$type=='Végétation basse',]
+mydf.sc$type <- NULL
+mydf.sc$date <- NULL
+
+mydf.sc <- mydf.sc[complete.cases(mydf.sc),]
+
+mydf.sc <- melt(mydf.sc, id="scene")
+chart=ggplot(mydf.sc, aes(x=scene, y=value, fill=variable))+geom_boxplot(alpha=0.5)
+chart+
+  theme(axis.text.x = element_blank())+
+  scale_fill_manual(values=spectralsColor)+
+  labs(title = "Réflectance de la végétation basse selon la localisation")+
+  labs(x='Scène', y='réflectance (TOA)')+
+  facet_grid(variable ~ scene,scales = "free")+
+  theme(legend.title=element_blank(), axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) #remove legend title
+
+```
+
+Pour la végétation basse, la moyenne dans le vert est de `r round(mean(mydf.sc[mydf.sc$variable=='Vert' & mydf.sc$scene=='690-343',]$value, na.rm = TRUE))` pour la scène 690-343 contre `r round(mean(mydf.sc[mydf.sc$variable=='Vert' & mydf.sc$scene=='690-345',]$value, na.rm = TRUE))` pour la scène 690-345. Il semble donc y avoir un verdissement dans les scènes les plus au sud, ce qui pourrait s'expliquer par exemple par une avance dans la saison sèche.
+
+
+
+### Le palmier pinôt
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+# Graph by scene
+# Graph by scene for Veg basse
+#mydfc$scene <- mydf$scene
+mydf.sc <-  mydfc[mydfc$type=='Palmier pinôt',]
+mydf.sc$type <- NULL
+mydf.sc$date <- NULL
+
+mydf.sc <- mydf.sc[complete.cases(mydf.sc),]
+
+mydf.sc <- melt(mydf.sc, id="scene")
+chart=ggplot(mydf.sc, aes(x=scene, y=value, fill=variable))+geom_boxplot(alpha=0.5)
+chart+
+  theme(axis.text.x = element_blank())+
+  scale_fill_manual(values=spectralsColor)+
+  labs(title = "Réflectance du palmier pinôt selon la localisation")+
+  labs(x=satChose,y='réflectance (TOA)')+
+  facet_grid(variable ~ scene,scales = "free")+
+  theme(legend.title=element_blank(), axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank()) #remove legend title
+
+```
+
+Le palmier pinôt a la réflectance spectrale de l'ensemble de ses bandes qui augmente plus il est vers le sud La zone plus au nord (690-343) n'a que `r nrow(mydf.sc[mydf.sc$scene=='690-343',])` parcelles d'entraînement et `r nrow(mydf.sc[mydf.sc$scene=='690-345',])` pour la scène 690-345.
+  
+# Conclusion de l'analyse
+
+L'analyse repose sur l'analyse des végétations particulières de l'ensemble du Parc amazonien de Guyane avec SPOT5. Ce travail a permis de mettre en avant l'importance de la bande du proche et du moyen infrarouge. L'utilisation de ces bandes est indispensable à la bonne séparabilité des essences étudiées.
+Cependant, le palmier bâche, le palmier pinôt et les parinaris étant relativement proches, il peut être intéressant d'utiliser des images multitemporelles (une image contenant plusieurs bandes pour chaque date), ce qui devrait permettre d'améliorer la séparabilité spectrale des végétations étudiées. 
+Pour ce qui est de l'effet biogéographique, le nombre limité d'images permet de conclure à un certain verdissement de la canopée vers le sud pour les parinaris, et au contraire à un verdissement vers le nord pour les végétations basses et les palmiers pinôt.
+Ces premiers résultats restent à nuancer compte tenu du nombre limité de données.
