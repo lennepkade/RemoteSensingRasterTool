@@ -18,7 +18,7 @@
 # Remote Sensing Scripts
 Some scripts I developped for remote sensing. In Python or R, for the French Guiana Amazonian Park.
 
-If you want to make classification from Qgis, please use **[dzetsaka](github.com/lennepkade/dzetsaka)**
+If you want to make classification from Qgis, please use **[dzetsaka](https://www.github.com/nkarasiak/dzetsaka)**
 
 You can [**download** the whole repository](https://github.com/lennepkade/ScriptsParcAmazonien/archive/master.zip)
 
